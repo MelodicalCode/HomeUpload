@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home Upload</title>
+  <style>
+    :root {
+      --bg1: #f4efe6;
+      --bg2: #e8f0e2;
+      --card: #fffdf8;
+      --text: #1e2a21;
+      --muted: #5b6b60;
+      --accent: #1f7a5b;
+      --accent-2: #0f5c44;
+      --border: #cfdccf;
+      --ok: #24613a;
+      --err: #9b2c2c;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 0% 0%, #dcead7 0%, transparent 60%),
+        radial-gradient(900px 500px at 100% 100%, #fae9cf 0%, transparent 55%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+
+    .card {
+      width: min(640px, 100%);
+      background: color-mix(in srgb, var(--card) 92%, white 8%);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(20, 40, 28, 0.12);
+      animation: rise 350ms ease-out;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(12px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      line-height: 1.2;
+      letter-spacing: 0.02em;
+    }
+
+    p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 120ms ease, filter 120ms ease;
+    }
+
+    button:active { transform: translateY(1px); }
+
+    #pickBtn {
+      background: #dde9df;
+      color: var(--text);
+    }
+
+    #uploadBtn {
+      background: var(--accent);
+      color: white;
+    }
+
+    #uploadBtn:disabled {
+      background: #8aa79a;
+      cursor: not-allowed;
+    }
+
+    .meta {
+      margin-top: 14px;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    #status {
+      margin-top: 16px;
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      background: #fbfdfb;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 0.92rem;
+    }
+
+    .ok { color: var(--ok); }
+    .err { color: var(--err); }
+
+    input[type="file"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    @media (max-width: 520px) {
+      .card { padding: 18px; }
+      .row { gap: 10px; }
+      button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Upload Photos and Videos</h1>
+    <p>Choose files from your phone gallery/camera, then upload to this computer. Images are saved in <strong>storage/photos</strong> and videos in <strong>storage/videos</strong>.</p>
+
+    <input id="fileInput" type="file" accept="image/*,video/*" multiple>
+
+    <div class="row">
+      <button id="pickBtn" type="button">Choose Photos/Videos</button>
+      <button id="uploadBtn" type="button" disabled>Upload Selected Files</button>
+    </div>
+
+    <div class="meta" id="selectionMeta">No files selected.</div>
+    <div id="status">Ready.</div>
+  </main>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const pickBtn = document.getElementById('pickBtn');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const selectionMeta = document.getElementById('selectionMeta');
+    const status = document.getElementById('status');
+
+    let selectedFiles = [];
+
+    const formatBytes = (bytes) => {
+      if (!bytes) return '0 B';
+      const units = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+      return `${(bytes / (1024 ** i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+    };
+
+    pickBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', () => {
+      selectedFiles = Array.from(fileInput.files || []);
+      const totalBytes = selectedFiles.reduce((sum, f) => sum + f.size, 0);
+
+      if (selectedFiles.length === 0) {
+        selectionMeta.textContent = 'No files selected.';
+        uploadBtn.disabled = true;
+        return;
+      }
+
+      selectionMeta.textContent = `${selectedFiles.length} file(s) selected, ${formatBytes(totalBytes)} total.`;
+      uploadBtn.disabled = false;
+      status.className = '';
+      status.textContent = 'Files selected and ready to upload.';
+    });
+
+    uploadBtn.addEventListener('click', async () => {
+      if (!selectedFiles.length) return;
+
+      uploadBtn.disabled = true;
+      pickBtn.disabled = true;
+      status.className = '';
+      status.textContent = 'Uploading...';
+
+      try {
+        const form = new FormData();
+        for (const file of selectedFiles) {
+          form.append('files', file);
+        }
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: form
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Upload failed.');
+        }
+
+        status.className = 'ok';
+        status.textContent = [
+          `Saved: ${result.savedCount}`,
+          `Rejected: ${result.rejectedCount}`,
+          result.rejectedCount ? `Rejected files: ${result.rejected.map(x => `${x.file} (${x.reason})`).join(', ')}` : 'All selected files were accepted.'
+        ].join('\n');
+
+        fileInput.value = '';
+        selectedFiles = [];
+        selectionMeta.textContent = 'No files selected.';
+      } catch (error) {
+        status.className = 'err';
+        status.textContent = error.message || 'Upload failed.';
+      } finally {
+        uploadBtn.disabled = false;
+        pickBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
