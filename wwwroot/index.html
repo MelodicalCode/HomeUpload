@@ -116,6 +116,106 @@
     .ok { color: var(--ok); }
     .err { color: var(--err); }
 
+    .secondary {
+      background: #eef3ec;
+      color: var(--text);
+    }
+
+    .danger {
+      background: #b42323;
+      color: #ffffff;
+    }
+
+    .danger:disabled {
+      background: #d48e8e;
+      cursor: not-allowed;
+    }
+
+    .gallery {
+      display: none;
+      margin-top: 18px;
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+    }
+
+    .gallery.open {
+      display: block;
+    }
+
+    .gallery-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .media-card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 220px;
+    }
+
+    .media-card input {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 20px;
+      height: 20px;
+      z-index: 2;
+    }
+
+    .media-preview {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      background: #dfe7de;
+      display: block;
+    }
+
+    .media-preview.video {
+      object-fit: contain;
+      background: #111;
+    }
+
+    .media-meta {
+      padding: 10px 12px 12px;
+      display: grid;
+      gap: 4px;
+      font-size: 0.88rem;
+    }
+
+    .media-meta strong {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tiny {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .gallery-empty {
+      padding: 14px;
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      color: var(--muted);
+      background: #fcfdfb;
+    }
+
     input[type="file"] {
       position: absolute;
       width: 1px;
@@ -133,28 +233,54 @@
 </head>
 <body>
   <main class="card">
-    <h1>Upload Photos and Videos</h1>
-    <p>Choose files from your phone gallery/camera, then upload to this computer. Images are saved in <strong>storage/photos</strong> and videos in <strong>storage/videos</strong>.</p>
+    <h1>Upload Files</h1>
+    <p>Choose any files from your phone, then upload them to this computer. Photos are saved in <strong>storage/photos</strong>, videos in <strong>storage/videos</strong>, and everything else in <strong>storage/files</strong>.</p>
 
-    <input id="fileInput" type="file" accept="image/*,video/*" multiple>
+    <input id="fileInput" type="file" multiple>
 
     <div class="row">
-      <button id="pickBtn" type="button">Choose Photos/Videos</button>
+      <button id="pickBtn" type="button">Choose Files</button>
       <button id="uploadBtn" type="button" disabled>Upload Selected Files</button>
+      <button id="viewBtn" class="secondary" type="button">View Uploaded Files</button>
     </div>
 
     <div class="meta" id="selectionMeta">No files selected.</div>
     <div id="status">Ready.</div>
+
+    <section id="gallery" class="gallery" aria-live="polite">
+      <div class="gallery-head">
+        <div>
+          <strong>Uploaded files</strong>
+          <div class="tiny">Tap supported items to preview, select one or many, then download them to your device.</div>
+        </div>
+        <div class="row" style="margin-top: 0;">
+          <button id="downloadSelectedBtn" class="secondary" type="button">Download Selected</button>
+          <button id="deleteSelectedBtn" class="danger" type="button">Delete Selected</button>
+          <button id="closeGalleryBtn" class="secondary" type="button">Close</button>
+        </div>
+      </div>
+      <div id="galleryState" class="gallery-empty">Open the gallery to load uploaded files.</div>
+      <div id="galleryGrid" class="gallery-grid" style="margin-top: 12px;"></div>
+    </section>
   </main>
 
   <script>
     const fileInput = document.getElementById('fileInput');
     const pickBtn = document.getElementById('pickBtn');
     const uploadBtn = document.getElementById('uploadBtn');
+    const viewBtn = document.getElementById('viewBtn');
+    const closeGalleryBtn = document.getElementById('closeGalleryBtn');
+    const downloadSelectedBtn = document.getElementById('downloadSelectedBtn');
+    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
     const selectionMeta = document.getElementById('selectionMeta');
     const status = document.getElementById('status');
+    const gallery = document.getElementById('gallery');
+    const galleryState = document.getElementById('galleryState');
+    const galleryGrid = document.getElementById('galleryGrid');
 
     let selectedFiles = [];
+    let galleryLoaded = false;
+    let mediaItems = [];
 
     const formatBytes = (bytes) => {
       if (!bytes) return '0 B';
@@ -163,7 +289,200 @@
       return `${(bytes / (1024 ** i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
     };
 
+    const formatDate = (value) => {
+      const date = new Date(value);
+      return date.toLocaleString();
+    };
+
+    const openGallery = async () => {
+      gallery.classList.add('open');
+      if (!galleryLoaded) {
+        await loadGallery();
+      }
+    };
+
+    const closeGallery = () => {
+      gallery.classList.remove('open');
+    };
+
+    const loadGallery = async () => {
+      galleryState.textContent = 'Loading uploaded media...';
+      galleryState.className = 'gallery-empty';
+      galleryGrid.innerHTML = '';
+
+      try {
+        const response = await fetch('/api/files');
+        if (!response.ok) {
+          throw new Error('Could not load uploaded files.');
+        }
+
+        const result = await response.json();
+        mediaItems = result.items || [];
+        galleryLoaded = true;
+
+        if (mediaItems.length === 0) {
+          galleryState.textContent = 'No uploaded files yet.';
+          return;
+        }
+
+        galleryState.textContent = `${mediaItems.length} uploaded file(s) found.`;
+        galleryState.className = 'tiny';
+
+        for (const item of mediaItems) {
+          const card = document.createElement('label');
+          card.className = 'media-card';
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.value = item.downloadToken;
+
+          const isVideo = item.type === 'video';
+          const isImage = item.type === 'photo';
+          const preview = document.createElement(isVideo ? 'video' : isImage ? 'img' : 'div');
+          preview.className = `media-preview${isVideo ? ' video' : ''}`;
+          if (isVideo || isImage) {
+            preview.src = item.url;
+            preview.alt = item.name;
+            preview.loading = 'lazy';
+            if (isVideo) {
+              preview.controls = true;
+              preview.preload = 'metadata';
+            }
+          } else {
+            preview.style.display = 'grid';
+            preview.style.placeItems = 'center';
+            preview.style.fontSize = '2.2rem';
+            preview.style.color = 'var(--muted)';
+            preview.textContent = '📄';
+          }
+
+          const meta = document.createElement('div');
+          meta.className = 'media-meta';
+
+          const title = document.createElement('strong');
+          title.textContent = item.name;
+
+          const details = document.createElement('div');
+          details.className = 'tiny';
+          details.textContent = `${item.type} • ${formatBytes(item.size)} • ${formatDate(item.createdUtc)}`;
+
+          const download = document.createElement('a');
+          download.href = item.url;
+          download.download = item.name;
+          download.textContent = 'Download';
+          download.style.color = 'var(--accent-2)';
+          download.style.fontWeight = '600';
+          download.style.textDecoration = 'none';
+
+          meta.append(title, details, download);
+          card.append(checkbox, preview, meta);
+          galleryGrid.appendChild(card);
+        }
+      } catch (error) {
+        galleryLoaded = false;
+        galleryState.textContent = error.message || 'Could not load uploaded media.';
+        galleryState.className = 'gallery-empty err';
+      }
+    };
+
+    const downloadBlob = (blob, fileName) => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    };
+
     pickBtn.addEventListener('click', () => fileInput.click());
+    viewBtn.addEventListener('click', openGallery);
+    closeGalleryBtn.addEventListener('click', closeGallery);
+
+    downloadSelectedBtn.addEventListener('click', async () => {
+      const selected = Array.from(galleryGrid.querySelectorAll('input[type="checkbox"]:checked')).map(input => input.value);
+
+      if (selected.length === 0) {
+        galleryState.textContent = 'Select one or more items first.';
+        galleryState.className = 'gallery-empty';
+        return;
+      }
+
+      galleryState.textContent = 'Preparing download...';
+      galleryState.className = 'gallery-empty';
+
+      try {
+        const form = new FormData();
+        for (const value of selected) {
+          form.append('files', value);
+        }
+
+        const response = await fetch('/api/download-zip', {
+          method: 'POST',
+          body: form
+        });
+
+        if (!response.ok) {
+          const error = await response.json().catch(() => null);
+          throw new Error(error?.error || 'Download failed.');
+        }
+
+        const blob = await response.blob();
+        downloadBlob(blob, 'uploads.zip');
+        galleryState.textContent = `Downloaded ${selected.length} item(s).`;
+        galleryState.className = 'tiny';
+      } catch (error) {
+        galleryState.textContent = error.message || 'Download failed.';
+        galleryState.className = 'gallery-empty err';
+      }
+    });
+
+    deleteSelectedBtn.addEventListener('click', async () => {
+      const selected = Array.from(galleryGrid.querySelectorAll('input[type="checkbox"]:checked')).map(input => input.value);
+
+      if (selected.length === 0) {
+        galleryState.textContent = 'Select one or more items first.';
+        galleryState.className = 'gallery-empty';
+        return;
+      }
+
+      const shouldDelete = window.confirm(`Delete ${selected.length} selected file(s)? This cannot be undone.`);
+      if (!shouldDelete) {
+        return;
+      }
+
+      deleteSelectedBtn.disabled = true;
+      galleryState.textContent = 'Deleting selected files...';
+      galleryState.className = 'gallery-empty';
+
+      try {
+        const form = new FormData();
+        for (const value of selected) {
+          form.append('files', value);
+        }
+
+        const response = await fetch('/api/delete-files', {
+          method: 'POST',
+          body: form
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result?.error || 'Delete failed.');
+        }
+
+        galleryState.textContent = `Deleted ${result.deletedCount} file(s).`;
+        galleryState.className = 'tiny';
+        galleryLoaded = false;
+        await loadGallery();
+      } catch (error) {
+        galleryState.textContent = error.message || 'Delete failed.';
+        galleryState.className = 'gallery-empty err';
+      } finally {
+        deleteSelectedBtn.disabled = false;
+      }
+    });
 
     fileInput.addEventListener('change', () => {
       selectedFiles = Array.from(fileInput.files || []);
