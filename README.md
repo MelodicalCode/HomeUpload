@@ -150,3 +150,19 @@ Then rerun `dotnet run`.
 - Project file: `HomeUpload.csproj`
 - Entry point and API logic: `Program.cs`
 - Frontend page: `wwwroot/index.html`
+
+
+## Features to add before first product creation
+[x] Gallery feature that plays all photos/videos in rotation
+[x] Icon to show/connect to wifi or direct internet connection is being used
+[x] Icon to show available memory on each connected USB
+[ ] Settings icon that sets user settings
+    [ ] Ability to select a few RAID options for data storage
+    [ ] Ability to check repo for updates and download them to update then restart
+    [ ] Add setting for how long videos should play during gallery, (5s, 10s, 15, 20s, 25s, 30s, 1m, full video)
+[x] Displays url and has a QR code to open to the url on the center screen
+[ ] Show USB ports and what's attached to them - will allow you to setup storage options and can show current storage metrics
+[ ] Quick transfer feature to transfer all data from one USB to another
+[ ] Take away ability to have internal storage, so a USB with adequate storage must be present on the device
+[ ] Weather button - Opens weatherwise at the last set location
+[ ] internet website button - allows any website to be displayed on the device

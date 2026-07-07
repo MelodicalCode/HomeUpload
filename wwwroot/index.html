@@ -34,6 +34,21 @@
       padding: 16px;
     }
 
+    body.gallery-open {
+      background: #000;
+      padding: 0;
+      display: block;
+      overflow: hidden;
+    }
+
+    body.gallery-open .card {
+      display: none;
+    }
+
+    body.files-open .card {
+      pointer-events: none;
+    }
+
     .card {
       width: min(640px, 100%);
       background: color-mix(in srgb, var(--card) 92%, white 8%);
@@ -42,6 +57,69 @@
       padding: 24px;
       box-shadow: 0 20px 40px rgba(20, 40, 28, 0.12);
       animation: rise 350ms ease-out;
+    }
+
+    .home-qr {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 0 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 18px;
+    }
+
+    .home-qr-label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    #mainQrCode {
+      width: clamp(200px, 55vw, 300px);
+      height: clamp(200px, 55vw, 300px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #mainQrCode canvas,
+    #mainQrCode img {
+      width: 100% !important;
+      height: 100% !important;
+      border-radius: 12px;
+      border: 3px solid var(--border);
+    }
+
+    .home-url-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 100%;
+    }
+
+    #mainUrlDisplay {
+      font-size: clamp(0.82rem, 2.5vw, 1rem);
+      font-weight: 700;
+      color: #0f4a3a;
+      background: #e8f5ef;
+      border: 1px solid #9dcfb8;
+      border-radius: 10px;
+      padding: 7px 12px;
+      word-break: break-all;
+    }
+
+    #mainCopyUrlBtn {
+      background: #1f7a5b;
+      color: #fff;
+      padding: 7px 14px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     @keyframes rise {
@@ -67,6 +145,11 @@
       gap: 12px;
       flex-wrap: wrap;
       margin-top: 10px;
+    }
+
+    .row-top {
+      align-items: center;
+      justify-content: center;
     }
 
     button {
@@ -121,6 +204,59 @@
       color: var(--text);
     }
 
+    #openGalleryBtn {
+      background: #173f33;
+      color: #ffffff;
+    }
+
+    #viewFilesBtn {
+      background: #1f5a90;
+      color: #ffffff;
+    }
+
+    .storage-section {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .storage-drive {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .storage-drive-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .storage-drive-label {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .storage-bar-track {
+      width: 100%;
+      height: 10px;
+      background: #dde9df;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .storage-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 300ms ease;
+      background: var(--accent);
+    }
+
+    .storage-bar-fill.warn  { background: #b07c10; }
+    .storage-bar-fill.crit  { background: #a02020; }
+
     .danger {
       background: #b42323;
       color: #ffffff;
@@ -131,76 +267,274 @@
       cursor: not-allowed;
     }
 
-    .gallery {
+    .gallery-modal {
+      position: fixed;
+      inset: 0;
       display: none;
-      margin-top: 18px;
-      border-top: 1px solid var(--border);
-      padding-top: 18px;
+      z-index: 1000;
+      background: #000;
+      overflow: auto;
+      padding: 0;
     }
 
-    .gallery.open {
+    .gallery-modal.open {
       display: block;
     }
 
-    .gallery-head {
+    .photo-timestamp {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      background: rgba(0, 0, 0, 0.62);
+      color: #e8e8e8;
+      font-size: 1rem;
+      font-weight: 500;
+      padding: 7px 18px;
+      border-radius: 10px;
+      white-space: nowrap;
+      letter-spacing: 0.04em;
+      backdrop-filter: blur(6px);
+      pointer-events: none;
+    }
+
+    .files-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 920;
+      display: none;
+      background: rgba(8, 15, 12, 0.76);
+      padding: 24px 16px;
+      overflow: auto;
+    }
+
+    .files-modal.open {
+      display: block;
+    }
+
+    .files-panel {
+      width: min(920px, 100%);
+      margin: 0 auto;
+      background: #f7fbf8;
+      border: 1px solid #c8d8cf;
+      border-radius: 16px;
+      box-shadow: 0 18px 42px rgba(6, 16, 10, 0.35);
+      padding: 18px;
+    }
+
+    .files-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .files-title {
+      margin: 0;
+      font-size: 1.2rem;
+      color: #193227;
+    }
+
+    .files-actions {
+      display: flex;
+      gap: 8px;
       flex-wrap: wrap;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
+      align-items: center;
     }
 
-    .gallery-grid {
+    .files-summary {
+      font-size: 0.92rem;
+      color: #44554b;
+      margin-left: auto;
+    }
+
+    .files-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 10px;
     }
 
-    .media-card {
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      overflow: hidden;
-      background: #fff;
-      position: relative;
+    .file-card {
+      border: 1px solid #cfddd4;
+      border-radius: 12px;
+      background: #ffffff;
+      padding: 8px;
       display: flex;
       flex-direction: column;
-      min-height: 220px;
+      gap: 8px;
     }
 
-    .media-card input {
+    .file-card.selected {
+      border-color: #4f8f70;
+      box-shadow: 0 0 0 2px rgba(79, 143, 112, 0.18);
+      background: #f4faf7;
+    }
+
+    .file-thumb {
+      width: 100%;
+      height: 132px;
+      border-radius: 10px;
+      background: #0b0b0b;
+      border: 1px solid #1f1f1f;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      position: relative;
+    }
+
+    /* transparent overlay blocks ALL native pointer interaction with media inside */
+    .file-thumb::after {
+      content: '';
       position: absolute;
-      top: 10px;
-      left: 10px;
-      width: 20px;
-      height: 20px;
+      inset: 0;
       z-index: 2;
     }
 
-    .media-preview {
+    .file-thumb img,
+    .file-thumb video,
+    .file-thumb iframe {
       width: 100%;
-      aspect-ratio: 1 / 1;
-      object-fit: cover;
-      background: #dfe7de;
-      display: block;
-    }
-
-    .media-preview.video {
+      height: 100%;
       object-fit: contain;
-      background: #111;
+      border: 0;
+      background: #0b0b0b;
+      display: block;
+      pointer-events: none;
     }
 
-    .media-meta {
-      padding: 10px 12px 12px;
+    .thumb-bg {
+      width: 100%;
+      height: 100%;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-color: #0b0b0b;
+    }
+
+    .file-thumb audio {
+      width: 92%;
+      pointer-events: none;
+    }
+
+    .thumb-fallback {
+      color: #d1d1d1;
+      font-size: 0.82rem;
+      text-align: center;
+      padding: 0 12px;
+    }
+
+    .file-card-name {
+      font-weight: 700;
+      color: #1f2e25;
+      font-size: 0.85rem;
+      line-height: 1.2;
+      min-height: 2.1em;
+      word-break: break-word;
+    }
+
+    .file-card-meta {
+      font-size: 0.76rem;
+      color: #4c6055;
+      line-height: 1.2;
+      min-height: 2.2em;
+    }
+
+    .file-card-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .select-tile {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      color: #294739;
+      user-select: none;
+    }
+
+    #filesSearch {
+      flex: 1 1 180px;
+      min-width: 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 0.95rem;
+      background: #fff;
+      color: var(--text);
+    }
+
+    #filesSearch:focus {
+      outline: 2px solid #4f8f70;
+      outline-offset: 1px;
+    }
+
+    .files-row {
       display: grid;
-      gap: 4px;
-      font-size: 0.88rem;
+      grid-template-columns: 34px minmax(150px, 1fr) 130px 180px 110px;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid #edf2ee;
+      font-size: 0.92rem;
     }
 
-    .media-meta strong {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+    .files-row:last-child {
+      border-bottom: 0;
+    }
+
+    .files-head {
+      background: #f2f7f4;
+      color: #34483d;
+      font-weight: 700;
+      font-size: 0.86rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .files-name {
+      word-break: break-word;
+      color: #1f2e25;
+      font-weight: 600;
+    }
+
+    .files-type {
+      color: #3d5146;
+      text-transform: capitalize;
+    }
+
+    .files-empty {
+      padding: 18px 12px;
+      color: #4b6054;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
+    .inline-link {
+      color: #0f5c92;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .inline-link:hover {
+      text-decoration: underline;
+    }
+
+    .gallery {
+      width: 100%;
+      min-height: 100dvh;
+      margin: 0;
+      background: #000;
+      border: 0;
+      border-radius: 0;
+      padding: 0;
     }
 
     .tiny {
@@ -208,12 +542,67 @@
       font-size: 0.82rem;
     }
 
-    .gallery-empty {
-      padding: 14px;
-      border: 1px dashed var(--border);
-      border-radius: 14px;
-      color: var(--muted);
-      background: #fcfdfb;
+    .rotation-viewer {
+      display: block;
+      width: 100%;
+      min-height: 100dvh;
+    }
+
+    .rotation-stage {
+      width: 100%;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      position: relative;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .rotation-stage-backdrop {
+      position: absolute;
+      inset: -6%;
+      background-size: cover;
+      background-position: center;
+      filter: blur(42px) saturate(1.05);
+      transform: scale(1.08);
+      opacity: 0.9;
+      z-index: 0;
+    }
+
+    .rotation-stage img,
+    .rotation-stage video {
+      width: auto;
+      height: auto;
+      max-width: 100vw;
+      max-height: 100dvh;
+      object-fit: contain;
+      display: block;
+      background: transparent;
+      position: relative;
+      z-index: 1;
+    }
+
+    .modal-close {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1010;
+      background: #c52323;
+      color: #fff;
+      border-radius: 999px;
+      width: 168px;
+      height: 168px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      font-weight: 800;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .modal-close.show {
+      display: inline-flex;
     }
 
     input[type="file"] {
@@ -228,59 +617,126 @@
       .card { padding: 18px; }
       .row { gap: 10px; }
       button { width: 100%; }
+      .modal-close { width: 132px; height: 132px; font-size: 2rem; }
+      .row-top { align-items: stretch; }
+      .files-panel { padding: 14px; }
+      .files-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .files-summary { width: 100%; margin-left: 0; }
     }
   </style>
 </head>
 <body>
   <main class="card">
+    <div class="home-qr">
+      <div class="home-qr-label">Scan to upload from your phone</div>
+      <div id="mainQrCode"></div>
+      <div class="home-url-row">
+        <div id="mainUrlDisplay">Loading...</div>
+        <button id="mainCopyUrlBtn" type="button">Copy</button>
+      </div>
+    </div>
+
     <h1>Upload Files</h1>
     <p>Choose any files from your phone, then upload them to this computer. Photos are saved in <strong>storage/photos</strong>, videos in <strong>storage/videos</strong>, and everything else in <strong>storage/files</strong>.</p>
 
     <input id="fileInput" type="file" multiple>
 
+    <div class="row row-top">
+      <button id="openGalleryBtn" type="button">Play</button>
+      <button id="viewFilesBtn" type="button">View Files</button>
+    </div>
+
     <div class="row">
       <button id="pickBtn" type="button">Choose Files</button>
       <button id="uploadBtn" type="button" disabled>Upload Selected Files</button>
-      <button id="viewBtn" class="secondary" type="button">View Uploaded Files</button>
     </div>
 
     <div class="meta" id="selectionMeta">No files selected.</div>
     <div id="status">Ready.</div>
+    <div id="storageStatus" class="storage-section"></div>
 
-    <section id="gallery" class="gallery" aria-live="polite">
-      <div class="gallery-head">
-        <div>
-          <strong>Uploaded files</strong>
-          <div class="tiny">Tap supported items to preview, select one or many, then download them to your device.</div>
-        </div>
-        <div class="row" style="margin-top: 0;">
-          <button id="downloadSelectedBtn" class="secondary" type="button">Download Selected</button>
-          <button id="deleteSelectedBtn" class="danger" type="button">Delete Selected</button>
-          <button id="closeGalleryBtn" class="secondary" type="button">Close</button>
-        </div>
-      </div>
-      <div id="galleryState" class="gallery-empty">Open the gallery to load uploaded files.</div>
-      <div id="galleryGrid" class="gallery-grid" style="margin-top: 12px;"></div>
-    </section>
   </main>
+
+  <section id="galleryModal" class="gallery-modal" aria-live="polite" aria-hidden="true">
+    <button id="modalCloseBtn" class="modal-close" type="button" aria-label="Close gallery">Close</button>
+    <section id="gallery" class="gallery">
+      <div id="rotationViewer" class="rotation-viewer" aria-live="polite">
+        <div id="rotationStage" class="rotation-stage"></div>
+      </div>
+    </section>
+  </section>
+
+  <section id="filesModal" class="files-modal" aria-hidden="true">
+    <div class="files-panel" role="dialog" aria-modal="true" aria-label="View uploaded files">
+      <div class="files-header">
+        <h2 class="files-title">Uploaded Files</h2>
+        <button id="filesCloseBtn" type="button" class="danger">Close</button>
+      </div>
+
+      <div class="files-actions">
+        <input id="filesSearch" type="search" placeholder="Search files..." autocomplete="off">
+      </div>
+      <div class="files-actions">
+        <label>
+          <input id="selectAllFiles" type="checkbox">
+          Select all
+        </label>
+        <button id="downloadSelectedBtn" type="button" class="secondary" disabled>Download Selected</button>
+        <button id="deleteSelectedBtn" type="button" class="danger" disabled>Delete Selected</button>
+        <button id="refreshFilesBtn" type="button" class="secondary">Refresh</button>
+        <div id="filesSummary" class="files-summary">Loading files...</div>
+      </div>
+
+      <div id="filesList" class="files-grid" aria-live="polite"></div>
+    </div>
+  </section>
 
   <script>
     const fileInput = document.getElementById('fileInput');
     const pickBtn = document.getElementById('pickBtn');
     const uploadBtn = document.getElementById('uploadBtn');
-    const viewBtn = document.getElementById('viewBtn');
-    const closeGalleryBtn = document.getElementById('closeGalleryBtn');
+    const openGalleryBtn = document.getElementById('openGalleryBtn');
+    const viewFilesBtn = document.getElementById('viewFilesBtn');
+    const showUrlBtn = document.getElementById('showUrlBtn');
+    const urlModal = null;
+    const urlText = null;
+    const qrContainer = document.getElementById('qrContainer') ?? null;
+    const copyUrlBtn = null;
+    const closeUrlBtn = null;
+    const mainQrCode = document.getElementById('mainQrCode');
+    const mainUrlDisplay = document.getElementById('mainUrlDisplay');
+    const mainCopyUrlBtn = document.getElementById('mainCopyUrlBtn');
+    const galleryModal = document.getElementById('galleryModal');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const filesModal = document.getElementById('filesModal');
+    const filesCloseBtn = document.getElementById('filesCloseBtn');
+    const filesList = document.getElementById('filesList');
+    const filesSummary = document.getElementById('filesSummary');
+    const selectAllFiles = document.getElementById('selectAllFiles');
     const downloadSelectedBtn = document.getElementById('downloadSelectedBtn');
     const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+    const refreshFilesBtn = document.getElementById('refreshFilesBtn');
+    const filesSearch = document.getElementById('filesSearch');
     const selectionMeta = document.getElementById('selectionMeta');
     const status = document.getElementById('status');
+    const networkBadge = null; // removed
+    const storageStatus = document.getElementById('storageStatus');
     const gallery = document.getElementById('gallery');
-    const galleryState = document.getElementById('galleryState');
-    const galleryGrid = document.getElementById('galleryGrid');
+    const rotationViewer = document.getElementById('rotationViewer');
+    const rotationStage = document.getElementById('rotationStage');
 
     let selectedFiles = [];
     let galleryLoaded = false;
     let mediaItems = [];
+    let rotationItems = [];
+    let rotationIndex = 0;
+    let rotationTimer = null;
+    let closeButtonTimer = null;
+    let filesLoaded = false;
+    let fileItems = [];
+    let filesSearchQuery = '';
+    const selectedDownloadTokens = new Set();
+    const PHOTO_ROTATION_MS = 5000;
 
     const formatBytes = (bytes) => {
       if (!bytes) return '0 B';
@@ -294,22 +750,399 @@
       return date.toLocaleString();
     };
 
-    const openGallery = async () => {
-      gallery.classList.add('open');
-      if (!galleryLoaded) {
-        await loadGallery();
+    const escapeHtml = (text) => String(text ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+
+    const getExtension = (name) => {
+      const parts = String(name || '').toLowerCase().split('.');
+      return parts.length > 1 ? parts.pop() : '';
+    };
+
+    const findFileByToken = (token) => {
+      return fileItems.find(item => item.downloadToken === token) || null;
+    };
+
+    const getTilePreviewHtml = (item) => {
+      if (item.type === 'photo') {
+        return `<div class="thumb-bg" style="background-image:url('${escapeHtml(item.url)}')"></div>`;
       }
+
+      if (item.type === 'video') {
+        return `<div class="thumb-fallback">&#9654; Video</div>`;
+      }
+
+      const extension = getExtension(item.name);
+      if (['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac'].includes(extension)) {
+        return `<div class="thumb-fallback">&#9834; Audio</div>`;
+      }
+
+      if (extension === 'pdf') {
+        return `<div class="thumb-fallback">PDF</div>`;
+      }
+
+      return `<div class="thumb-fallback">${escapeHtml(extension.toUpperCase() || 'File')}</div>`;
+    };
+
+    const syncBodyScrollLock = () => {
+      const hasBlockingModal =
+        galleryModal.classList.contains('open') ||
+        filesModal.classList.contains('open');
+      document.body.style.overflow = hasBlockingModal ? 'hidden' : '';
+    };
+
+    const renderStorageDrives = (drives) => {
+      if (!drives || drives.length === 0) {
+        storageStatus.innerHTML = '';
+        return;
+      }
+      storageStatus.innerHTML = drives.map(d => {
+        const barClass = d.usedPct >= 90 ? 'crit' : d.usedPct >= 70 ? 'warn' : '';
+        return `
+          <div class="storage-drive">
+            <div class="storage-drive-header">
+              <span class="storage-drive-label">${escapeHtml(d.label)}</span>
+              <span>${d.usedGb} / ${d.totalGb} GB &nbsp;(${d.usedPct}%)</span>
+            </div>
+            <div class="storage-bar-track">
+              <div class="storage-bar-fill ${barClass}" style="width:${d.usedPct}%"></div>
+            </div>
+          </div>`;
+      }).join('');
+    };
+
+    const refreshStorage = async () => {
+      try {
+        const response = await fetch('/api/system/storage');
+        if (response.ok) {
+          const data = await response.json();
+          renderStorageDrives(data.drives);
+        }
+      } catch { /* silent */ }
+    };
+
+    const renderNetworkBadge = () => {}; // removed
+    const refreshNetworkBadge = () => {};  // removed
+
+    const openGallery = async () => {
+      galleryModal.classList.add('open');
+      galleryModal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('gallery-open');
+      syncBodyScrollLock();
+      showModalCloseButton();
+      await startRotation();
     };
 
     const closeGallery = () => {
-      gallery.classList.remove('open');
+      stopRotation();
+      galleryModal.classList.remove('open');
+      galleryModal.setAttribute('aria-hidden', 'true');
+      modalCloseBtn.classList.remove('show');
+      document.body.classList.remove('gallery-open');
+      syncBodyScrollLock();
+      if (closeButtonTimer) {
+        clearTimeout(closeButtonTimer);
+        closeButtonTimer = null;
+      }
+    };
+
+    const updateDownloadSelectionUi = () => {
+      const selectedCount = selectedDownloadTokens.size;
+      downloadSelectedBtn.disabled = selectedCount === 0;
+      deleteSelectedBtn.disabled = selectedCount === 0;
+      const visible = filesSearchQuery
+        ? fileItems.filter(item => item.name.toLowerCase().includes(filesSearchQuery.toLowerCase())).length
+        : fileItems.length;
+      if (fileItems.length === 0) {
+        filesSummary.textContent = 'No files found.';
+        return;
+      }
+      const filterNote = filesSearchQuery && visible !== fileItems.length ? ` (${visible} shown)` : '';
+      filesSummary.textContent = `${selectedCount} selected of ${fileItems.length} file(s)${filterNote}`;
+    };
+
+    const triggerFileDownload = (url, filename) => {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    };
+
+    const renderFiles = () => {
+      if (fileItems.length === 0) {
+        filesList.innerHTML = '<div class="files-empty">No files uploaded yet.</div>';
+        updateDownloadSelectionUi();
+        return;
+      }
+
+      const query = filesSearchQuery.toLowerCase();
+      const visible = query
+        ? fileItems.filter(item => item.name.toLowerCase().includes(query))
+        : fileItems;
+
+      if (visible.length === 0) {
+        filesList.innerHTML = '<div class="files-empty">No files match your search.</div>';
+        updateDownloadSelectionUi();
+        return;
+      }
+
+      const tiles = visible.map((item) => {
+        const checked = selectedDownloadTokens.has(item.downloadToken) ? 'checked' : '';
+        const selectedClass = selectedDownloadTokens.has(item.downloadToken) ? ' selected' : '';
+        return `
+          <article class="file-card${selectedClass}" data-token="${escapeHtml(item.downloadToken)}">
+            <div class="file-thumb">
+              ${getTilePreviewHtml(item)}
+            </div>
+            <div class="file-card-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
+            <div class="file-card-meta">${escapeHtml(item.type)} · ${formatBytes(item.size)}<br>${formatDate(item.createdUtc)}</div>
+            <div class="file-card-actions">
+              <label class="select-tile">
+                <input type="checkbox" class="file-check" data-token="${escapeHtml(item.downloadToken)}" ${checked}>
+                Select
+              </label>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      filesList.innerHTML = tiles;
+
+      for (const video of filesList.querySelectorAll('video')) {
+        video.currentTime = 0.1;
+      }
+
+      selectAllFiles.checked = fileItems.length > 0 && selectedDownloadTokens.size === fileItems.length;
+      updateDownloadSelectionUi();
+    };
+
+    const setTokenSelection = (token, isSelected) => {
+      if (!findFileByToken(token)) return;
+      if (isSelected) {
+        selectedDownloadTokens.add(token);
+      } else {
+        selectedDownloadTokens.delete(token);
+      }
+      renderFiles();
+    };
+
+    const toggleTokenSelection = (token) => {
+      setTokenSelection(token, !selectedDownloadTokens.has(token));
+    };
+
+    const loadFilesForViewer = async () => {
+      filesSummary.textContent = 'Loading files...';
+      try {
+        const response = await fetch('/api/files');
+        if (!response.ok) throw new Error('Could not load files.');
+        const result = await response.json();
+        fileItems = (result.items || []).slice().sort((a, b) =>
+          Date.parse(b.createdUtc || 0) - Date.parse(a.createdUtc || 0)
+        );
+        const availableTokens = new Set(fileItems.map(item => item.downloadToken));
+        for (const token of Array.from(selectedDownloadTokens)) {
+          if (!availableTokens.has(token)) selectedDownloadTokens.delete(token);
+        }
+        filesLoaded = true;
+        renderFiles();
+      } catch {
+        fileItems = [];
+        filesLoaded = false;
+        filesList.innerHTML = '<div class="files-empty">Could not load files.</div>';
+        filesSummary.textContent = 'Load failed.';
+        downloadSelectedBtn.disabled = true;
+      }
+    };
+
+    const openFilesModal = async () => {
+      filesModal.classList.add('open');
+      filesModal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('files-open');
+      syncBodyScrollLock();
+
+      if (!filesLoaded) {
+        await loadFilesForViewer();
+      }
+    };
+
+    const closeFilesModal = () => {
+      filesModal.classList.remove('open');
+      filesModal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('files-open');
+      syncBodyScrollLock();
+    };
+
+    const deleteSelectedFiles = async () => {
+      const tokens = Array.from(selectedDownloadTokens);
+      if (tokens.length === 0) return;
+
+      const label = tokens.length === 1 ? '1 file' : `${tokens.length} files`;
+      if (!window.confirm(`Permanently delete ${label}? This cannot be undone.`)) return;
+
+      deleteSelectedBtn.disabled = true;
+      deleteSelectedBtn.textContent = 'Deleting...';
+
+      try {
+        const form = new FormData();
+        for (const token of tokens) form.append('files', token);
+        const response = await fetch('/api/delete-files', { method: 'POST', body: form });
+        if (!response.ok) throw new Error('Delete failed.');
+        selectedDownloadTokens.clear();
+        galleryLoaded = false; // invalidate gallery so Play reflects deletion
+        filesLoaded = false;
+        await loadFilesForViewer();
+      } catch {
+        filesSummary.textContent = 'Delete failed.';
+      } finally {
+        deleteSelectedBtn.textContent = 'Delete Selected';
+        updateDownloadSelectionUi();
+      }
+    };
+
+    const downloadSelectedFiles = async () => {
+      const tokens = Array.from(selectedDownloadTokens);
+      if (tokens.length === 0) return;
+
+      downloadSelectedBtn.disabled = true;
+      downloadSelectedBtn.textContent = 'Preparing...';
+
+      try {
+        // Single file: direct download — no zip needed
+        if (tokens.length === 1) {
+          const item = findFileByToken(tokens[0]);
+          if (item) {
+            const a = document.createElement('a');
+            a.href = item.url;
+            a.download = item.name;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          }
+          return;
+        }
+
+        const form = new FormData();
+        for (const token of tokens) form.append('files', token);
+
+        const response = await fetch('/api/download-zip', { method: 'POST', body: form });
+        if (!response.ok) throw new Error('Could not prepare zip download.');
+
+        const blob = await response.blob();
+        const disposition = response.headers.get('content-disposition') || '';
+        const fileNameMatch = disposition.match(/filename="?([^";]+)"?/i);
+        const zipName = fileNameMatch?.[1] || 'uploads.zip';
+
+        const blobUrl = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = blobUrl;
+        anchor.download = zipName;
+        anchor.style.display = 'none';
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(blobUrl);
+      } catch {
+        filesSummary.textContent = 'Download failed.';
+      } finally {
+        downloadSelectedBtn.textContent = 'Download Selected';
+        updateDownloadSelectionUi();
+      }
+    };
+
+    const showModalCloseButton = () => {
+      modalCloseBtn.classList.add('show');
+      if (closeButtonTimer) {
+        clearTimeout(closeButtonTimer);
+      }
+      closeButtonTimer = setTimeout(() => {
+        modalCloseBtn.classList.remove('show');
+      }, 3000);
+    };
+
+    const clearRotationSchedule = () => {
+      if (rotationTimer) {
+        clearTimeout(rotationTimer);
+        rotationTimer = null;
+      }
+    };
+
+    const stopRotation = () => {
+      clearRotationSchedule();
+      rotationItems = [];
+      rotationIndex = 0;
+      rotationStage.innerHTML = '';
+    };
+
+    const scheduleNextRotation = (delayMs) => {
+      rotationTimer = setTimeout(() => {
+        if (rotationItems.length === 0) {
+          stopRotation();
+          return;
+        }
+
+        rotationIndex = (rotationIndex + 1) % rotationItems.length;
+        playRotationItem();
+      }, delayMs);
+    };
+
+    const playRotationItem = () => {
+      clearRotationSchedule();
+
+      const item = rotationItems[rotationIndex];
+      if (!item) {
+        stopRotation();
+        return;
+      }
+
+      rotationStage.innerHTML = '';
+
+      const backdrop = document.createElement('div');
+      backdrop.className = 'rotation-stage-backdrop';
+      backdrop.style.backgroundImage = `url("${item.url}")`;
+      rotationStage.appendChild(backdrop);
+
+      const img = document.createElement('img');
+      img.src = item.url;
+      img.alt = '';
+      rotationStage.appendChild(img);
+
+      if (item.takenAt) {
+        const ts = document.createElement('div');
+        ts.className = 'photo-timestamp';
+        ts.textContent = new Date(item.takenAt).toLocaleString(undefined, {
+          year: 'numeric', month: 'short', day: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
+        rotationStage.appendChild(ts);
+      }
+
+      scheduleNextRotation(PHOTO_ROTATION_MS);
+    };
+
+    const startRotation = async () => {
+      if (!galleryLoaded) {
+        await loadGallery();
+      }
+
+      rotationItems = mediaItems.filter(item => item.type === 'photo');
+
+      if (rotationItems.length === 0) {
+        stopRotation();
+        closeGallery();
+        return;
+      }
+
+      rotationIndex = 0;
+      playRotationItem();
     };
 
     const loadGallery = async () => {
-      galleryState.textContent = 'Loading uploaded media...';
-      galleryState.className = 'gallery-empty';
-      galleryGrid.innerHTML = '';
-
       try {
         const response = await fetch('/api/files');
         if (!response.ok) {
@@ -319,168 +1152,92 @@
         const result = await response.json();
         mediaItems = result.items || [];
         galleryLoaded = true;
-
-        if (mediaItems.length === 0) {
-          galleryState.textContent = 'No uploaded files yet.';
-          return;
-        }
-
-        galleryState.textContent = `${mediaItems.length} uploaded file(s) found.`;
-        galleryState.className = 'tiny';
-
-        for (const item of mediaItems) {
-          const card = document.createElement('label');
-          card.className = 'media-card';
-
-          const checkbox = document.createElement('input');
-          checkbox.type = 'checkbox';
-          checkbox.value = item.downloadToken;
-
-          const isVideo = item.type === 'video';
-          const isImage = item.type === 'photo';
-          const preview = document.createElement(isVideo ? 'video' : isImage ? 'img' : 'div');
-          preview.className = `media-preview${isVideo ? ' video' : ''}`;
-          if (isVideo || isImage) {
-            preview.src = item.url;
-            preview.alt = item.name;
-            preview.loading = 'lazy';
-            if (isVideo) {
-              preview.controls = true;
-              preview.preload = 'metadata';
-            }
-          } else {
-            preview.style.display = 'grid';
-            preview.style.placeItems = 'center';
-            preview.style.fontSize = '2.2rem';
-            preview.style.color = 'var(--muted)';
-            preview.textContent = '📄';
-          }
-
-          const meta = document.createElement('div');
-          meta.className = 'media-meta';
-
-          const title = document.createElement('strong');
-          title.textContent = item.name;
-
-          const details = document.createElement('div');
-          details.className = 'tiny';
-          details.textContent = `${item.type} • ${formatBytes(item.size)} • ${formatDate(item.createdUtc)}`;
-
-          const download = document.createElement('a');
-          download.href = item.url;
-          download.download = item.name;
-          download.textContent = 'Download';
-          download.style.color = 'var(--accent-2)';
-          download.style.fontWeight = '600';
-          download.style.textDecoration = 'none';
-
-          meta.append(title, details, download);
-          card.append(checkbox, preview, meta);
-          galleryGrid.appendChild(card);
-        }
       } catch (error) {
         galleryLoaded = false;
-        galleryState.textContent = error.message || 'Could not load uploaded media.';
-        galleryState.className = 'gallery-empty err';
+        stopRotation();
+        closeGallery();
       }
-    };
-
-    const downloadBlob = (blob, fileName) => {
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 2000);
     };
 
     pickBtn.addEventListener('click', () => fileInput.click());
-    viewBtn.addEventListener('click', openGallery);
-    closeGalleryBtn.addEventListener('click', closeGallery);
 
-    downloadSelectedBtn.addEventListener('click', async () => {
-      const selected = Array.from(galleryGrid.querySelectorAll('input[type="checkbox"]:checked')).map(input => input.value);
+    openGalleryBtn.addEventListener('click', openGallery);
+    viewFilesBtn.addEventListener('click', openFilesModal);
+    modalCloseBtn.addEventListener('click', closeGallery);
+    filesCloseBtn.addEventListener('click', closeFilesModal);
+    refreshFilesBtn.addEventListener('click', async () => {
+      await loadFilesForViewer();
+    });
+    downloadSelectedBtn.addEventListener('click', downloadSelectedFiles);
+    deleteSelectedBtn.addEventListener('click', deleteSelectedFiles);
+    filesSearch.addEventListener('input', () => {
+      filesSearchQuery = filesSearch.value;
+      renderFiles();
+    });
 
-      if (selected.length === 0) {
-        galleryState.textContent = 'Select one or more items first.';
-        galleryState.className = 'gallery-empty';
+    selectAllFiles.addEventListener('change', () => {
+      if (selectAllFiles.checked) {
+        for (const item of fileItems) {
+          selectedDownloadTokens.add(item.downloadToken);
+        }
+      } else {
+        selectedDownloadTokens.clear();
+      }
+
+      renderFiles();
+    });
+
+    filesList.addEventListener('change', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement) || !target.classList.contains('file-check')) {
         return;
       }
 
-      galleryState.textContent = 'Preparing download...';
-      galleryState.className = 'gallery-empty';
+      const token = target.dataset.token;
+      if (!token) {
+        return;
+      }
 
-      try {
-        const form = new FormData();
-        for (const value of selected) {
-          form.append('files', value);
-        }
+      setTokenSelection(token, target.checked);
+    });
 
-        const response = await fetch('/api/download-zip', {
-          method: 'POST',
-          body: form
-        });
+    filesList.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
 
-        if (!response.ok) {
-          const error = await response.json().catch(() => null);
-          throw new Error(error?.error || 'Download failed.');
-        }
+      // Checkbox: let the change event handle selection state
+      if (target instanceof HTMLInputElement && target.classList.contains('file-check')) {
+        return;
+      }
 
-        const blob = await response.blob();
-        downloadBlob(blob, 'uploads.zip');
-        galleryState.textContent = `Downloaded ${selected.length} item(s).`;
-        galleryState.className = 'tiny';
-      } catch (error) {
-        galleryState.textContent = error.message || 'Download failed.';
-        galleryState.className = 'gallery-empty err';
+      // Everything else: select the card, block all default browser behaviour
+      event.preventDefault();
+      event.stopPropagation();
+      const card = target.closest('.file-card');
+      const token = card?.getAttribute('data-token');
+      if (token) toggleTokenSelection(token);
+    });
+
+    galleryModal.addEventListener('click', (event) => {
+      if (!galleryModal.classList.contains('open')) {
+        return;
+      }
+
+      showModalCloseButton();
+      if (event.target === galleryModal) {
+        closeGallery();
       }
     });
 
-    deleteSelectedBtn.addEventListener('click', async () => {
-      const selected = Array.from(galleryGrid.querySelectorAll('input[type="checkbox"]:checked')).map(input => input.value);
-
-      if (selected.length === 0) {
-        galleryState.textContent = 'Select one or more items first.';
-        galleryState.className = 'gallery-empty';
-        return;
+    gallery.addEventListener('click', () => {
+      if (galleryModal.classList.contains('open')) {
+        showModalCloseButton();
       }
+    });
 
-      const shouldDelete = window.confirm(`Delete ${selected.length} selected file(s)? This cannot be undone.`);
-      if (!shouldDelete) {
-        return;
-      }
-
-      deleteSelectedBtn.disabled = true;
-      galleryState.textContent = 'Deleting selected files...';
-      galleryState.className = 'gallery-empty';
-
-      try {
-        const form = new FormData();
-        for (const value of selected) {
-          form.append('files', value);
-        }
-
-        const response = await fetch('/api/delete-files', {
-          method: 'POST',
-          body: form
-        });
-
-        const result = await response.json();
-        if (!response.ok) {
-          throw new Error(result?.error || 'Delete failed.');
-        }
-
-        galleryState.textContent = `Deleted ${result.deletedCount} file(s).`;
-        galleryState.className = 'tiny';
-        galleryLoaded = false;
-        await loadGallery();
-      } catch (error) {
-        galleryState.textContent = error.message || 'Delete failed.';
-        galleryState.className = 'gallery-empty err';
-      } finally {
-        deleteSelectedBtn.disabled = false;
+    filesModal.addEventListener('click', (event) => {
+      if (event.target === filesModal) {
+        closeFilesModal();
       }
     });
 
@@ -543,6 +1300,47 @@
         pickBtn.disabled = false;
       }
     });
+
+    refreshNetworkBadge();
+    setInterval(refreshNetworkBadge, 10000);
+
+    refreshStorage();
+    setInterval(refreshStorage, 30000);
+
+    // Generate main-page QR on load
+    (async () => {
+      try {
+        const response = await fetch('/api/system/network');
+        const network = response.ok ? await response.json() : null;
+        const url = network?.phoneUrl ?? window.location.origin;
+        mainUrlDisplay.textContent = url;
+        const size = Math.min(300, Math.round(Math.min(window.innerWidth, window.innerHeight) * 0.55));
+        if (typeof QRCode !== 'undefined') {
+          new QRCode(mainQrCode, {
+            text: url,
+            width: size,
+            height: size,
+            colorDark: '#0a1a10',
+            colorLight: '#f7fbf8',
+            correctLevel: QRCode.CorrectLevel.M
+          });
+        }
+      } catch {
+        mainUrlDisplay.textContent = window.location.origin;
+      }
+    })();
+
+    mainCopyUrlBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(mainUrlDisplay.textContent);
+        mainCopyUrlBtn.textContent = 'Copied!';
+        setTimeout(() => { mainCopyUrlBtn.textContent = 'Copy'; }, 1800);
+      } catch {
+        mainCopyUrlBtn.textContent = 'Failed';
+        setTimeout(() => { mainCopyUrlBtn.textContent = 'Copy'; }, 1800);
+      }
+    });
   </script>
+  <script src="/qrcode.min.js"></script>
 </body>
 </html>
