@@ -214,11 +214,147 @@
       color: #ffffff;
     }
 
+    #watchVideosBtn {
+      background: #5a1f8a;
+      color: #ffffff;
+    }
+
+    .video-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 970;
+      display: none;
+      flex-direction: column;
+      background: #070707;
+    }
+
+    .video-modal.open { display: flex; }
+
+    .vp-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: #111;
+      flex-shrink: 0;
+      gap: 12px;
+    }
+
+    .vp-now-playing {
+      font-size: 0.88rem;
+      color: #b0d4b8;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .vp-player {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      height: 50dvh;
+    }
+
+    .vp-player video {
+      width: 100%;
+      height: 100%;
+      max-height: 50dvh;
+      object-fit: contain;
+      display: block;
+    }
+
+    .vp-idle {
+      color: #444;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    .vp-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .vp-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid #2a2a2a;
+      background: #141414;
+      cursor: pointer;
+      color: #d0d0d0;
+    }
+
+    .vp-item.playing {
+      border-color: #4a9a6a;
+      background: #0c2016;
+    }
+
+    .vp-item.queued {
+      border-color: #6a5a9a;
+      background: #100c1e;
+    }
+
+    .vp-item-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .vp-item-meta {
+      font-size: 0.75rem;
+      color: #666;
+    }
+
+    .vp-btn {
+      border: 1px solid #3a3a3a;
+      background: #222;
+      color: #ccc;
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .vp-btn:hover { background: #333; }
+    .vp-btn.active { background: #1f5a3a; border-color: #4a9a6a; color: #a0e8b8; }
+
+    .vp-empty { color: #555; text-align: center; padding: 24px; font-size: 0.95rem; }
+
     .storage-section {
-      margin-top: 16px;
+      margin-top: 0;
       display: flex;
       flex-direction: column;
       gap: 10px;
+    }
+
+    .storage-section-wrap {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .storage-section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
     }
 
     .storage-drive {
@@ -256,6 +392,38 @@
 
     .storage-bar-fill.warn  { background: #b07c10; }
     .storage-bar-fill.crit  { background: #a02020; }
+
+    .upload-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 300ms ease;
+      background: var(--accent);
+    }
+
+    .upload-bar-overall {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 300ms ease;
+      background: #3d6e9a;
+    }
+
+    #uploadProgress {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    #uploadProgress.active { display: flex; }
+
+    .upload-progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .upload-progress-label strong { color: var(--text); }
 
     .danger {
       background: #b42323;
@@ -558,6 +726,16 @@
       overflow: hidden;
     }
 
+    .rotation-media-wrap {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      transition: opacity 700ms ease-in-out;
+      overflow: hidden;
+    }
+
     .rotation-stage-backdrop {
       position: absolute;
       inset: -6%;
@@ -569,8 +747,8 @@
       z-index: 0;
     }
 
-    .rotation-stage img,
-    .rotation-stage video {
+    .rotation-media-wrap img,
+    .rotation-media-wrap video {
       width: auto;
       height: auto;
       max-width: 100vw;
@@ -644,6 +822,7 @@
     <div class="row row-top">
       <button id="openGalleryBtn" type="button">Play</button>
       <button id="viewFilesBtn" type="button">View Files</button>
+      <button id="watchVideosBtn" type="button">Watch</button>
     </div>
 
     <div class="row">
@@ -653,7 +832,29 @@
 
     <div class="meta" id="selectionMeta">No files selected.</div>
     <div id="status">Ready.</div>
-    <div id="storageStatus" class="storage-section"></div>
+    <div id="uploadProgress">
+      <div class="upload-progress-label">
+        <strong style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted)">Upload Progress</strong>
+      </div>
+      <div class="upload-progress-label">
+        <strong id="uploadProgressLabel">Uploading…</strong>
+        <span id="uploadProgressPct">0%</span>
+      </div>
+      <div class="storage-bar-track">
+        <div id="uploadProgressBar" class="upload-bar-fill" style="width:0%"></div>
+      </div>
+      <div class="upload-progress-label">
+        <span id="uploadOverallLabel">Files: 0 / 0</span>
+        <span id="uploadOverallPct">0%</span>
+      </div>
+      <div class="storage-bar-track">
+        <div id="uploadOverallBar" class="upload-bar-overall" style="width:0%"></div>
+      </div>
+    </div>
+    <div id="storageStatusWrap" style="display:none" class="storage-section-wrap">
+      <div class="storage-section-title">Drive Space</div>
+      <div id="storageStatus" class="storage-section"></div>
+    </div>
 
   </main>
 
@@ -691,12 +892,29 @@
     </div>
   </section>
 
+  <section id="videoModal" class="video-modal" aria-hidden="true">
+    <div class="vp-header">
+      <div id="vpNowPlaying" class="vp-now-playing">No video playing</div>
+      <button id="vpCloseBtn" type="button" class="danger">Close</button>
+    </div>
+    <div class="vp-player" id="vpPlayerArea">
+      <div class="vp-idle">Select a video below to start playing.</div>
+    </div>
+    <div id="vpList" class="vp-list" aria-live="polite"></div>
+  </section>
+
   <script>
     const fileInput = document.getElementById('fileInput');
     const pickBtn = document.getElementById('pickBtn');
     const uploadBtn = document.getElementById('uploadBtn');
     const openGalleryBtn = document.getElementById('openGalleryBtn');
     const viewFilesBtn = document.getElementById('viewFilesBtn');
+    const watchVideosBtn = document.getElementById('watchVideosBtn');
+    const videoModal = document.getElementById('videoModal');
+    const vpNowPlaying = document.getElementById('vpNowPlaying');
+    const vpPlayerArea = document.getElementById('vpPlayerArea');
+    const vpList = document.getElementById('vpList');
+    const vpCloseBtn = document.getElementById('vpCloseBtn');
     const showUrlBtn = document.getElementById('showUrlBtn');
     const urlModal = null;
     const urlText = null;
@@ -721,6 +939,14 @@
     const status = document.getElementById('status');
     const networkBadge = null; // removed
     const storageStatus = document.getElementById('storageStatus');
+    const storageStatusWrap = document.getElementById('storageStatusWrap');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const uploadProgressLabel = document.getElementById('uploadProgressLabel');
+    const uploadProgressPct = document.getElementById('uploadProgressPct');
+    const uploadProgressBar = document.getElementById('uploadProgressBar');
+    const uploadOverallLabel = document.getElementById('uploadOverallLabel');
+    const uploadOverallPct = document.getElementById('uploadOverallPct');
+    const uploadOverallBar = document.getElementById('uploadOverallBar');
     const gallery = document.getElementById('gallery');
     const rotationViewer = document.getElementById('rotationViewer');
     const rotationStage = document.getElementById('rotationStage');
@@ -732,11 +958,62 @@
     let rotationIndex = 0;
     let rotationTimer = null;
     let closeButtonTimer = null;
+    let preloadedWrap = null;
     let filesLoaded = false;
     let fileItems = [];
     let filesSearchQuery = '';
+    let videoItems = [];
+    let vpCurrentIndex = -1;
+    let vpQueue = [];
     const selectedDownloadTokens = new Set();
-    const PHOTO_ROTATION_MS = 5000;
+    const PHOTO_ROTATION_MS = 10000;
+    const FADE_MS = 700;
+
+    const shuffleArray = (arr) => {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    };
+
+    const buildRotationWrap = (item) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'rotation-media-wrap';
+      wrap.dataset.url = item.url;
+
+      const backdrop = document.createElement('div');
+      backdrop.className = 'rotation-stage-backdrop';
+      backdrop.style.backgroundImage = `url("${item.url}")`;
+      wrap.appendChild(backdrop);
+
+      if (item.type === 'video') {
+        const video = document.createElement('video');
+        video.src = item.url;
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'auto';
+        wrap.appendChild(video);
+      } else {
+        const img = new Image();
+        img.src = item.url;
+        img.alt = '';
+        wrap.appendChild(img);
+      }
+
+      if (item.takenAt) {
+        const ts = document.createElement('div');
+        ts.className = 'photo-timestamp';
+        ts.textContent = new Date(item.takenAt).toLocaleString(undefined, {
+          year: 'numeric', month: 'short', day: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
+        wrap.appendChild(ts);
+      }
+
+      return wrap;
+    };
 
     const formatBytes = (bytes) => {
       if (!bytes) return '0 B';
@@ -768,6 +1045,10 @@
 
     const getTilePreviewHtml = (item) => {
       if (item.type === 'photo') {
+        const ext = getExtension(item.name);
+        if (ext === 'heic' || ext === 'heif') {
+          return `<div class="thumb-fallback">HEIC Photo<br><small>Download to view</small></div>`;
+        }
         return `<div class="thumb-bg" style="background-image:url('${escapeHtml(item.url)}')"></div>`;
       }
 
@@ -787,6 +1068,126 @@
       return `<div class="thumb-fallback">${escapeHtml(extension.toUpperCase() || 'File')}</div>`;
     };
 
+    const vpFormatDuration = (seconds) => {
+      if (!isFinite(seconds) || seconds < 0) return '';
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    };
+
+    const vpRenderList = () => {
+      if (videoItems.length === 0) {
+        vpList.innerHTML = '<div class="vp-empty">No videos found.</div>';
+        return;
+      }
+
+      vpList.innerHTML = videoItems.map((item, idx) => {
+        const isPlaying = idx === vpCurrentIndex;
+        const isQueued = !isPlaying && vpQueue.includes(idx);
+        const stateClass = isPlaying ? ' playing' : isQueued ? ' queued' : '';
+        const badge = isPlaying ? '▶ Playing' : isQueued ? `#${vpQueue.indexOf(idx) + 1} Queue` : '';
+        return `
+          <div class="vp-item${stateClass}" data-idx="${idx}">
+            <div>
+              <div class="vp-item-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
+              <div class="vp-item-meta">${formatBytes(item.size)}${badge ? ' · ' + badge : ''}</div>
+            </div>
+            <button type="button" class="vp-btn${isPlaying ? ' active' : ''}" data-action="play" data-idx="${idx}">▶ Play</button>
+            <button type="button" class="vp-btn${isQueued ? ' active' : ''}" data-action="queue" data-idx="${idx}">+ Queue</button>
+          </div>`;
+      }).join('');
+    };
+
+    const vpSetVideo = (idx) => {
+      if (idx < 0 || idx >= videoItems.length) return;
+      vpCurrentIndex = idx;
+      const item = videoItems[idx];
+
+      // Remove queued entry if it's there
+      vpQueue = vpQueue.filter(i => i !== idx);
+
+      vpNowPlaying.textContent = item.name;
+
+      vpPlayerArea.innerHTML = '';
+      const video = document.createElement('video');
+      video.src = item.url;
+      video.controls = true;
+      video.autoplay = true;
+      video.playsInline = true;
+      video.style.width = '100%';
+      video.style.height = '100%';
+      video.style.maxHeight = '50dvh';
+      video.style.objectFit = 'contain';
+      video.style.display = 'block';
+
+      video.addEventListener('ended', () => {
+        if (vpQueue.length > 0) {
+          vpSetVideo(vpQueue[0]);
+        } else {
+          const next = (vpCurrentIndex + 1) % videoItems.length;
+          vpSetVideo(next);
+        }
+      });
+
+      vpPlayerArea.appendChild(video);
+      vpRenderList();
+
+      // Scroll the playing item into view
+      const playingEl = vpList.querySelector('.vp-item.playing');
+      if (playingEl) playingEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+
+    const vpQueueVideo = (idx) => {
+      if (!vpQueue.includes(idx) && idx !== vpCurrentIndex) {
+        vpQueue.push(idx);
+      }
+      vpRenderList();
+    };
+
+    const openVideoModal = async () => {
+      videoModal.classList.add('open');
+      videoModal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('files-open');
+      syncBodyScrollLock();
+
+      try {
+        const response = await fetch('/api/files');
+        const data = response.ok ? await response.json() : { items: [] };
+        videoItems = (data.items || []).filter(item => item.type === 'video')
+          .sort((a, b) => Date.parse(b.createdUtc || 0) - Date.parse(a.createdUtc || 0));
+      } catch {
+        videoItems = [];
+      }
+
+      vpRenderList();
+    };
+
+    const closeVideoModal = () => {
+      vpPlayerArea.innerHTML = '<div class="vp-idle">Select a video below to start playing.</div>';
+      vpNowPlaying.textContent = 'No video playing';
+      vpCurrentIndex = -1;
+      vpQueue = [];
+      videoItems = [];
+      videoModal.classList.remove('open');
+      videoModal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('files-open');
+      syncBodyScrollLock();
+    };
+
+    vpCloseBtn.addEventListener('click', closeVideoModal);
+    videoModal.addEventListener('click', (e) => { if (e.target === videoModal) closeVideoModal(); });
+    vpList.addEventListener('click', (e) => {
+      const btn = e.target.closest('.vp-btn');
+      if (!btn) return;
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.idx, 10);
+      if (btn.dataset.action === 'play') {
+        vpSetVideo(idx);
+      } else if (btn.dataset.action === 'queue') {
+        vpQueueVideo(idx);
+      }
+    });
+
     const syncBodyScrollLock = () => {
       const hasBlockingModal =
         galleryModal.classList.contains('open') ||
@@ -797,8 +1198,10 @@
     const renderStorageDrives = (drives) => {
       if (!drives || drives.length === 0) {
         storageStatus.innerHTML = '';
+        storageStatusWrap.style.display = 'none';
         return;
       }
+      storageStatusWrap.style.display = '';
       storageStatus.innerHTML = drives.map(d => {
         const barClass = d.usedPct >= 90 ? 'crit' : d.usedPct >= 70 ? 'warn' : '';
         return `
@@ -1076,6 +1479,7 @@
       clearRotationSchedule();
       rotationItems = [];
       rotationIndex = 0;
+      preloadedWrap = null;
       rotationStage.innerHTML = '';
     };
 
@@ -1095,34 +1499,50 @@
       clearRotationSchedule();
 
       const item = rotationItems[rotationIndex];
-      if (!item) {
-        stopRotation();
-        return;
+      if (!item) { stopRotation(); return; }
+
+      // Use preloaded wrap if it matches, otherwise build now
+      const wrap = (preloadedWrap && preloadedWrap.dataset.url === item.url)
+        ? preloadedWrap
+        : buildRotationWrap(item);
+      preloadedWrap = null;
+
+      // Fade in: append at opacity 0, then transition to 1
+      rotationStage.appendChild(wrap);
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        wrap.style.opacity = '1';
+      }));
+
+      // Fade out and clean up any previous wraps
+      for (const old of Array.from(rotationStage.querySelectorAll('.rotation-media-wrap:not(:last-child)'))) {
+        old.style.opacity = '0';
+        const cleanup = () => { if (old.parentNode) old.remove(); };
+        old.addEventListener('transitionend', cleanup, { once: true });
+        setTimeout(cleanup, FADE_MS + 400);
       }
 
-      rotationStage.innerHTML = '';
-
-      const backdrop = document.createElement('div');
-      backdrop.className = 'rotation-stage-backdrop';
-      backdrop.style.backgroundImage = `url("${item.url}")`;
-      rotationStage.appendChild(backdrop);
-
-      const img = document.createElement('img');
-      img.src = item.url;
-      img.alt = '';
-      rotationStage.appendChild(img);
-
-      if (item.takenAt) {
-        const ts = document.createElement('div');
-        ts.className = 'photo-timestamp';
-        ts.textContent = new Date(item.takenAt).toLocaleString(undefined, {
-          year: 'numeric', month: 'short', day: 'numeric',
-          hour: '2-digit', minute: '2-digit'
-        });
-        rotationStage.appendChild(ts);
+      // Preload the next item in the background
+      const nextIdx = (rotationIndex + 1) % rotationItems.length;
+      const nextItem = rotationItems[nextIdx];
+      if (nextItem) {
+        preloadedWrap = buildRotationWrap(nextItem);
       }
 
-      scheduleNextRotation(PHOTO_ROTATION_MS);
+      // Schedule advancement
+      if (item.type === 'video') {
+        const video = wrap.querySelector('video');
+        if (video) {
+          video.play().catch(() => {});
+          video.addEventListener('ended', () => {
+            rotationIndex = (rotationIndex + 1) % rotationItems.length;
+            playRotationItem();
+          }, { once: true });
+        }
+        // Fallback timer in case video stalls
+        scheduleNextRotation(60000);
+      } else {
+        scheduleNextRotation(PHOTO_ROTATION_MS);
+      }
     };
 
     const startRotation = async () => {
@@ -1130,7 +1550,11 @@
         await loadGallery();
       }
 
-      rotationItems = mediaItems.filter(item => item.type === 'photo');
+      rotationItems = shuffleArray(mediaItems.filter(item => {
+        if (item.type !== 'photo' && item.type !== 'video') return false;
+        const ext = getExtension(item.name);
+        return ext !== 'heic' && ext !== 'heif';
+      }));
 
       if (rotationItems.length === 0) {
         stopRotation();
@@ -1162,6 +1586,7 @@
     pickBtn.addEventListener('click', () => fileInput.click());
 
     openGalleryBtn.addEventListener('click', openGallery);
+    watchVideosBtn.addEventListener('click', openVideoModal);
     viewFilesBtn.addEventListener('click', openFilesModal);
     modalCloseBtn.addEventListener('click', closeGallery);
     filesCloseBtn.addEventListener('click', closeFilesModal);
@@ -1242,19 +1667,63 @@
     });
 
     fileInput.addEventListener('change', () => {
-      selectedFiles = Array.from(fileInput.files || []);
-      const totalBytes = selectedFiles.reduce((sum, f) => sum + f.size, 0);
+      const rawFiles = fileInput.files;
 
-      if (selectedFiles.length === 0) {
+      if (!rawFiles || rawFiles.length === 0) {
+        selectedFiles = [];
         selectionMeta.textContent = 'No files selected.';
         uploadBtn.disabled = true;
+        uploadBtn.textContent = 'Upload Files';
         return;
       }
 
-      selectionMeta.textContent = `${selectedFiles.length} file(s) selected, ${formatBytes(totalBytes)} total.`;
-      uploadBtn.disabled = false;
-      status.className = '';
-      status.textContent = 'Files selected and ready to upload.';
+      // Show bundling state immediately
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = 'Bundling Request…';
+      selectionMeta.textContent = `Reading 0 / ${rawFiles.length} files…`;
+      selectedFiles = [];
+
+      const total = rawFiles.length;
+      const CHUNK = 25;
+      let i = 0;
+      let totalBytes = 0;
+
+      const processChunk = () => {
+        const end = Math.min(i + CHUNK, total);
+        while (i < end) {
+          const f = rawFiles[i++];
+          selectedFiles.push(f);
+          totalBytes += f.size;
+        }
+
+        if (i < total) {
+          // Yield between chunks so the browser can repaint the progress
+          selectionMeta.textContent = `Bundling ${i} / ${total} files…`;
+          setTimeout(processChunk, 0);
+        } else {
+          selectionMeta.textContent = `${total} file(s) selected, ${formatBytes(totalBytes)} total.`;
+          uploadBtn.textContent = `Upload ${total} file${total === 1 ? '' : 's'}`;
+          uploadBtn.disabled = false;
+          status.className = '';
+          status.textContent = 'Files selected and ready to upload.';
+        }
+      };
+
+      setTimeout(processChunk, 0);
+    });
+
+    const uploadBatch = (files, onProgress) => new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const form = new FormData();
+      for (const file of files) form.append('files', file);
+      xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(e.loaded, e.total); };
+      xhr.onload = () => {
+        try { resolve(JSON.parse(xhr.responseText)); }
+        catch { reject(new Error('Invalid server response.')); }
+      };
+      xhr.onerror = () => reject(new Error('Network error.'));
+      xhr.open('POST', '/api/upload');
+      xhr.send(form);
     });
 
     uploadBtn.addEventListener('click', async () => {
@@ -1263,42 +1732,95 @@
       uploadBtn.disabled = true;
       pickBtn.disabled = true;
       status.className = '';
-      status.textContent = 'Uploading...';
+      status.textContent = '';
+      uploadProgress.classList.add('active');
 
-      try {
-        const form = new FormData();
-        for (const file of selectedFiles) {
-          form.append('files', file);
+      const BATCH_SIZE = 1;
+      const total = selectedFiles.length;
+      let savedCount = 0;
+      let rejectedCount = 0;
+      const rejected = [];
+      let batchError = null;
+      let filesUploaded = 0;
+
+      for (let i = 0; i < total; i += BATCH_SIZE) {
+        const batch = selectedFiles.slice(i, i + BATCH_SIZE);
+        const batchEnd = Math.min(i + BATCH_SIZE, total);
+        const batchBytes = batch.reduce((s, f) => s + f.size, 0);
+        const batchLabel = batch.length === 1 ? batch[0].name : `${batch.length} files`;
+
+        const batchMb = (batchBytes / 1_048_576).toFixed(1);
+        const batchStartTime = Date.now();
+        const batchHasVideo = batch.some(f => f.type.startsWith('video/'));
+        uploadProgressBar.style.background = batchHasVideo ? '#c89a0a' : '';
+
+        uploadProgressLabel.textContent = `Sending: ${batchLabel} · 0 / ${batchMb} MB`;
+        uploadProgressBar.style.width = '0%';
+        uploadProgressPct.textContent = '— MB/s · 0%';
+
+        const overallPct = Math.round(filesUploaded / total * 100);
+        uploadOverallLabel.textContent = `Files: ${filesUploaded} / ${total}`;
+        uploadOverallPct.textContent = `${overallPct}%`;
+        uploadOverallBar.style.width = `${overallPct}%`;
+
+        try {
+          // Pre-read files into memory so iOS loads iCloud photos before the XHR starts
+          uploadProgressLabel.textContent = `Reading: ${batchLabel}\u2026`;
+          uploadProgressPct.textContent = '';
+          const readyFiles = await Promise.all(
+            batch.map(async (f) => {
+              const buf = await f.arrayBuffer();
+              return new File([buf], f.name, { type: f.type || 'application/octet-stream' });
+            })
+          );
+          uploadProgressLabel.textContent = `Sending: ${batchLabel} \u00b7 0 / ${batchMb} MB`;
+          const result = await uploadBatch(readyFiles, (loaded, batchTotal) => {
+            const sz = batchTotal || batchBytes;
+            const pct = Math.round(loaded / sz * 100);
+            const loadedMb = (loaded / 1_048_576).toFixed(1);
+            const elapsedSec = Math.max((Date.now() - batchStartTime) / 1000, 0.1);
+            const speedMbps = (loaded / 1_048_576 / elapsedSec).toFixed(1);
+            uploadProgressLabel.textContent = `Sending: ${batchLabel} · ${loadedMb} / ${batchMb} MB`;
+            uploadProgressBar.style.width = `${pct}%`;
+            uploadProgressPct.textContent = `${speedMbps} MB/s · ${pct}%`;
+          });
+
+          if (!result || result.error) throw new Error(result?.error || `Batch ${batchEnd} failed.`);
+
+          savedCount += result.savedCount ?? 0;
+          rejectedCount += result.rejectedCount ?? 0;
+          if (result.rejected?.length) rejected.push(...result.rejected);
+          filesUploaded = batchEnd;
+        } catch (error) {
+          batchError = error;
+          break;
         }
+      }
 
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: form
-        });
+      uploadProgress.classList.remove('active');
+      uploadProgressBar.style.width = '0%';
+      uploadProgressBar.style.background = '';
+      uploadOverallBar.style.width = '0%';
 
-        const result = await response.json();
-
-        if (!response.ok) {
-          throw new Error(result.error || 'Upload failed.');
-        }
-
+      if (batchError) {
+        status.className = 'err';
+        status.textContent = `Upload stopped: ${batchError.message}`;
+      } else {
         status.className = 'ok';
         status.textContent = [
-          `Saved: ${result.savedCount}`,
-          `Rejected: ${result.rejectedCount}`,
-          result.rejectedCount ? `Rejected files: ${result.rejected.map(x => `${x.file} (${x.reason})`).join(', ')}` : 'All selected files were accepted.'
+          `Saved: ${savedCount}`,
+          `Rejected: ${rejectedCount}`,
+          rejectedCount ? `Rejected: ${rejected.map(x => `${x.file} (${x.reason})`).join(', ')}` : 'All files accepted.'
         ].join('\n');
-
         fileInput.value = '';
         selectedFiles = [];
         selectionMeta.textContent = 'No files selected.';
-      } catch (error) {
-        status.className = 'err';
-        status.textContent = error.message || 'Upload failed.';
-      } finally {
-        uploadBtn.disabled = false;
-        pickBtn.disabled = false;
+        uploadBtn.textContent = 'Upload Files';
       }
+
+      uploadBtn.disabled = false;
+      uploadBtn.textContent = uploadBtn.textContent === 'Bundling Request…' ? 'Upload Files' : uploadBtn.textContent;
+      pickBtn.disabled = false;
     });
 
     refreshNetworkBadge();

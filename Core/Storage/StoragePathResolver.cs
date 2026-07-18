@@ -16,17 +16,32 @@ public static class StoragePathResolver
                 continue;
             }
 
-            var mountedDrive = Directory.EnumerateDirectories(mediaRoot)
-                .OrderByDescending(Directory.GetLastWriteTimeUtc)
-                .FirstOrDefault();
-
-            if (!string.IsNullOrWhiteSpace(mountedDrive))
+            foreach (var mountedDrive in Directory.EnumerateDirectories(mediaRoot)
+                         .OrderByDescending(Directory.GetLastWriteTimeUtc))
             {
-                return BuildStoragePaths(Path.Combine(mountedDrive, "storage"));
+                if (TryBuildStoragePaths(Path.Combine(mountedDrive, "storage"), out var usbPaths))
+                {
+                    return usbPaths!;
+                }
             }
         }
 
         return BuildStoragePaths(Path.Combine(projectRoot, "storage"));
+    }
+
+    private static bool TryBuildStoragePaths(string root, out StoragePaths? paths)
+    {
+        try
+        {
+            paths = BuildStoragePaths(root);
+            return true;
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
+        {
+            Console.WriteLine($"[Storage] Skipping {root}: {ex.Message}");
+            paths = null;
+            return false;
+        }
     }
 
     private static StoragePaths BuildStoragePaths(string root)

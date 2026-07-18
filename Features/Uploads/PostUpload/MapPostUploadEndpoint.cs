@@ -2,9 +2,7 @@ public static class MapPostUploadEndpointFeature
 {
     public static IEndpointRouteBuilder MapPostUploadEndpoint(
         this IEndpointRouteBuilder app,
-        string photosDir,
-        string videosDir,
-        string filesDir,
+        Func<StoragePaths> resolvePaths,
         Func<string, string, bool> isImageFile,
         Func<string, string, bool> isVideoFile)
     {
@@ -13,6 +11,18 @@ public static class MapPostUploadEndpointFeature
             if (!request.HasFormContentType)
             {
                 return Results.BadRequest(new { error = "Expected multipart form upload." });
+            }
+
+            // Resolve storage paths fresh on every request so a newly connected
+            // drive is picked up immediately and missing folders are auto-created.
+            StoragePaths paths;
+            try
+            {
+                paths = resolvePaths();
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(detail: ex.Message, statusCode: 503, title: "Storage unavailable.");
             }
 
             var form = await request.ReadFormAsync();
@@ -37,10 +47,22 @@ public static class MapPostUploadEndpointFeature
                 var originalName = Path.GetFileName(file.FileName);
                 var extension = Path.GetExtension(originalName);
 
+                var sizeMb = file.Length / 1_048_576.0;
+                Console.WriteLine($"[Upload] Receiving: {originalName} ({sizeMb:F2} MB)");
+
                 var isImage = isImageFile(file.ContentType, extension);
                 var isVideo = isVideoFile(file.ContentType, extension);
 
-                var targetFolder = isImage ? photosDir : isVideo ? videosDir : filesDir;
+                var targetFolder = isImage ? paths.PhotosDir : isVideo ? paths.VideosDir : paths.FilesDir;
+
+                var freeBytes = GetAvailableFreeBytes(targetFolder);
+                if (freeBytes.HasValue && freeBytes.Value < file.Length)
+                {
+                    var freeMb = freeBytes.Value / 1_048_576.0;
+                    rejected.Add(new { file = file.FileName, reason = $"Insufficient disk space ({freeMb:F0} MB free)." });
+                    continue;
+                }
+
                 var safeExtension = extension.ToLowerInvariant();
                 var generatedName = $"{DateTime.UtcNow:yyyyMMddHHmmssfff}_{Guid.NewGuid():N}{safeExtension}";
                 var destinationPath = Path.Combine(targetFolder, generatedName);
@@ -67,5 +89,21 @@ public static class MapPostUploadEndpointFeature
         });
 
         return app;
+    }
+
+    private static long? GetAvailableFreeBytes(string path)
+    {
+        try
+        {
+            return DriveInfo.GetDrives()
+                .Where(d => d.IsReady && path.StartsWith(d.RootDirectory.FullName, StringComparison.Ordinal))
+                .OrderByDescending(d => d.RootDirectory.FullName.Length)
+                .FirstOrDefault()
+                ?.AvailableFreeSpace;
+        }
+        catch
+        {
+            return null;
+        }
     }
 }
