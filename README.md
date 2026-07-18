@@ -1,4 +1,4 @@
-# Pre-flight disclaimer, this entire project was vibe coded so use it at your own risk and take what it says below with a grain of salt
+# Pre-flight disclaimer, this entire project was vibe coded so use it at your own risk and take what it says below with a grain of salt. I will eventually unvibe the repo into a more maintainable state.
 
 # HomeUpload
 
